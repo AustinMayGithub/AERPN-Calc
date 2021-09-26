@@ -11,3 +11,7 @@ Wiring.
 
 Uhh first prototype looks awful and the thickness is due to wiring.
 
+
+
+![IMG_1390](https://user-images.githubusercontent.com/78342409/134826499-0833181d-1a04-4318-9972-af8076a50079.JPG)
+_final version will not be made of veroboard_
