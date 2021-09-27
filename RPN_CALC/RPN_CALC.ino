@@ -5,13 +5,14 @@
 #include <Adafruit_PCD8544.h>
 #include <Keypad.h>
 #include <Arduino.h>
-
 #include "Talkie.h"
 #include "Vocab_US_Large.h"
 #include "Vocab_Special.h"
 #include "Vocab_US_TI99.h"
 float rega = 0;
 float regb = 0; 
+float regas = 0;
+float regbs = 0;
 float num = 0;
 float numm = 0; 
 String out;
@@ -46,7 +47,7 @@ Keypad customKeypad = Keypad( makeKeymap(hexaKeys), rowPins, colPins, ROWS, COLS
 // pin 5 - Data/Command select (D/C)
 // pin 4 - LCD chip select (CS)
 // pin 3 - LCD reset (RST)
-Adafruit_PCD8544 display = Adafruit_PCD8544(3, 2, 6, 4, 5);
+Adafruit_PCD8544 display = Adafruit_PCD8544(6,5,4,3,2);
 
 void setup() {
   Serial.begin(9600);
@@ -63,29 +64,11 @@ void setup() {
 }
 
 void loop() {
-  display.clearDisplay();
-  display.setCursor(2,2);
-  display.setTextSize(1);
-  display.setTextColor(BLACK);
-  display.println("REG A"); 
-  display.setCursor(2,10);
-  display.println("REG B");
-  display.setCursor(35,2);
-  display.println(num);
-  display.setCursor(35,10);
-  display.println(numm);
-  display.setCursor(2,20);
-  display.println("FN:");
-  display.setCursor(20,20);
-  display.println("HOME");
-  display.setCursor(0,30);
-  display.println("--------------");
-  display.setCursor(0,40);
-  display.println(ans);
-  display.display();
+    Screen(num,numm,"HOME",ans);
     char customKey = customKeypad.getKey();
     out = GetNumber();
     Serial.println(out);
+    
     current = out.toFloat();
     Serial.println(current);
     if (current != 0) {
@@ -96,36 +79,22 @@ void loop() {
         num = current;
       }
     }
-    if (out == "SPEAK"){
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("SPEAK");
-      display.display();
-      sayNumber(ans);
-      display.begin();
+    rega = num;
+    regb = numm;
+    if (out == "PRG"){
+      Program();
     }
     if (out == "+") {
       Serial.println(num + numm);
       ans = num + numm;
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("ADD");
-      display.display();
+      Screen(num,numm,"ADD",ans);
+      sayNumber(ans);
       numm = ans;
       num = 0;
     }
     if (out == "SQRT"){
       ans = sqrt(num);
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("SQRT");
-      display.display();
+      Screen(num,numm,"SQRT",ans);
       numm = ans;
       num = 0;
      
@@ -134,12 +103,7 @@ void loop() {
     if (out == "/") {
       Serial.println(num / numm);
       ans = num / numm;
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("DIV");
-      display.display();
+      Screen(num,numm,"DIVIDE",ans);
       numm = ans;
       num = 0;
       
@@ -147,87 +111,65 @@ void loop() {
     if (out == "*") {
       Serial.println(num * numm);
       ans = num * numm;
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("MUL");
-      display.display();
+      Screen(num,numm,"MULTIPLY",ans);
       numm = ans;
       num = 0;
       
     }
     if (out == "SWAP") {
-      rega = num;
-      regb = numm;
-      num = regb;
-      numm = rega;
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("SWAP REG");
-      display.display();
+      regas = num;
+      regbs = numm;
+      num = regbs;
+      numm = regas;
+      Screen(num,numm,"SWAP REG",ans);
     }
     if (out == "POW") {
       ans = pow(num, numm);
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("POW");
-      display.display();
+      Screen(num,numm,"POWER",ans);
       numm = ans;
       num = 0;
     }
     if (out == "TAN") {
       ans = tan(num);
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("TAN");
-      display.display();
+      Screen(num,numm,"TANGENT",ans);
       numm = ans;
       num = 0;
     }
     if (out == "COS") {
       ans = cos(num);
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("COS");
-      display.display();
+      Screen(num,numm,"COSINE",ans);
       numm = ans;
       num = 0;
     }
     if (out == "SIN") {
       ans = sin(num);
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("SIN");
-      display.display();
+      Screen(num,numm,"SINE",ans);
       numm = ans;
       num = 0;
     }
-    if (out == "ABS") {
-      ans = abs(num);
-      display.clearDisplay();
-      display.setCursor(2,20);
-      display.println("FN:");
-      display.setCursor(20,20);
-      display.println("ABS");
-      display.display();
+    if (out == "LOG10") {
+      ans = log10(num);
+      Screen(num,numm,"LOG10",ans);
       numm = ans;
       num = 0;
     }
       
     
 }
-
+void Program() {
+  String funct; 
+  display.clearDisplay();
+  display.setCursor(2,2);
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.println("AERPN OS v0.2");
+  display.setCursor(0,30); 
+  display.println("--------------"); 
+  display.setCursor(0,40);
+  display.println(ans); 
+  display.display(); 
+  funct = GetNumber(); 
+}
 
 String GetNumber()
 {
@@ -245,181 +187,61 @@ String GetNumber()
          case '5': case '6': case '7': case '8': case '9':
             
             num = num * 10 + (key - '0');
-                display.clearDisplay();
-                display.setCursor(2,2);
-                display.setTextSize(1);
-                display.setTextColor(BLACK);
-                display.println("REG A"); 
-                display.setCursor(2,10);
-                display.println("REG B");
-                display.setCursor(0,30);
-                display.println("--------------");
-                display.setCursor(0,40);
-                display.println(num);
-                display.setCursor(2,20);
-                display.println("FN:");
-                display.setCursor(20,20);
-                display.println("ENTER");
-                display.setCursor(0,30);
-                display.display();
-                Serial.println(num);
+                Screen(rega,regb,"ENTER",num);
                 out = "0";
             break;
 
          case '*':
             num = num / 10 ;
-            display.clearDisplay();
-            display.setCursor(2,2);
-            display.setTextSize(1);
-            display.setTextColor(BLACK);
-            display.println("REG A"); 
-            display.setCursor(2,10);
-            display.println("REG B");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.setCursor(0,40);
-            display.println(num);
-            display.display();
+            Screen(rega,regb,"ENTER",num);
             break;
          case 'A':
             num = num * -1;
-            display.clearDisplay();
-            display.setCursor(2,2);
-            display.setTextSize(1);
-            display.setTextColor(BLACK);
-            display.println("REG A"); 
-            display.setCursor(2,10);
-            display.println("REG B");
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("NEG");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.setCursor(0,40);
-            display.println(num);
-            display.display();
+            Screen(rega,regb,"NEG",num);
             break;
          case 'B':
             out = "+";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("ADD");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            Screen(rega,regb,"ADD",num);
             break;
          case 'C':
             out = "/";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("DIV");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            Screen(rega,regb,"DIVIDE",num);
             break;
          case 'D':
             out = "*";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("MUL");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            Screen(rega,regb,"MULTIPLY",num);
             break;
          case 'L':
-            out = "SPEAK";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("SPEAK");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            out = "PRG";
+            Screen(rega,regb,"PROGRAMS",num);
             break;
          case 'H':
             out = "SQRT";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("SQRT");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            Screen(rega,regb,"SQRT",num);
             break;
          case 'E':
             out = "SIN";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("SIN");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            Screen(rega,regb,"SIN",num);
             break;
          case 'F':
             out = "COS";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("COS");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            Screen(rega,regb,"COSINE",num);
             break;
           case 'G':
             out = "TAN";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("TAN");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            Screen(rega,regb,"TANGENT",num);
             break;
          case 'I':
-            out = "ABS";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("ABS");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            out = "LOG10";
+            Screen(rega,regb,"LOG10",num);
             break;
          case 'J':
             out = "POW";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("POW");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+	          Screen(rega,regb,"POWER", 0);
             break;
          case 'K':
             out = "SWAP";
-            display.clearDisplay();
-            display.setCursor(2,20);
-            display.println("FN:");
-            display.setCursor(20,20);
-            display.println("SWAP REG");
-            display.setCursor(0,30);
-            display.println("--------------");
-            display.display();
+            Screen(rega,regb,"SWAP REG", 0);
             break;
             
             
@@ -438,6 +260,42 @@ String GetNumber()
    }
    
    }
+void Screen(float a, float b, String function, float ans){
+  display.clearDisplay();
+  display.setCursor(2,2);
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.println("REG A");
+  display.setCursor(2,10);
+  display.println("REG B");
+  display.setCursor(35,2);
+  display.println(a); 
+  display.setCursor(35,10); 
+  display.println(b); 
+  display.setCursor(2,20); 
+  display.println("FN:"); 
+  display.setCursor(20,20); 
+  display.println(function); 
+  display.setCursor(0,30); 
+  display.println("--------------"); 
+  display.setCursor(0,40); 
+  display.println(ans); 
+  display.display(); 
+			
+}
+void functionS(String function, String ans){
+  display.clearDisplay();
+  display.setCursor(2,2);
+  display.setTextSize(1);
+  display.setTextColor(BLACK);
+  display.setCursor(2,20); 
+  display.println(function); 
+  display.setCursor(0,30); 
+  display.println("--------------"); 
+  display.setCursor(0,40); 
+  display.println(ans); 
+  display.display(); 
+}
 void sayNumber(long n) {
     if (n < 0) {
         voice.say(sp2_MINUS);
@@ -566,3 +424,92 @@ void sayNumber(long n) {
         }
     }
 }
+String GetNumber()
+{
+   float num = 0 ;
+   String out;
+   char key = customKeypad.getKey();
+   while(key != '#')
+   {
+      switch (key)
+      {
+         case NO_KEY:
+            break;
+
+         case '0': case '1': case '2': case '3': case '4':
+         case '5': case '6': case '7': case '8': case '9':
+            
+            num = num * 10 + (key - '0');
+                Screen(rega,regb,"ENTER",num);
+                out = "0";
+            break;
+
+         case '*':
+            out = "EXIT";
+            
+            break;
+         case 'A':
+            num = num * -1;
+            Screen(rega,regb,"NEG",num);
+            break;
+         case 'B':
+            out = "+";
+            Screen(rega,regb,"ADD",num);
+            break;
+         case 'C':
+            out = "/";
+            Screen(rega,regb,"DIVIDE",num);
+            break;
+         case 'D':
+            out = "*";
+            Screen(rega,regb,"MULTIPLY",num);
+            break;
+         case 'L':
+            out = "PRG";
+            Screen(rega,regb,"PROGRAMS",num);
+            break;
+         case 'H':
+            out = "SQRT";
+            Screen(rega,regb,"SQRT",num);
+            break;
+         case 'E':
+            out = "SIN";
+            Screen(rega,regb,"SIN",num);
+            break;
+         case 'F':
+            out = "COS";
+            Screen(rega,regb,"COSINE",num);
+            break;
+          case 'G':
+            out = "TAN";
+            Screen(rega,regb,"TANGENT",num);
+            break;
+         case 'I':
+            out = "LOG10";
+            Screen(rega,regb,"LOG10",num);
+            break;
+         case 'J':
+            out = "POW";
+            Screen(rega,regb,"POWER", 0);
+            break;
+         case 'K':
+            out = "SWAP";
+            Screen(rega,regb,"SWAP REG", 0);
+            break;
+            
+            
+      }
+
+      key = customKeypad.getKey();
+   }
+   Serial.println(num);
+   Serial.println(out);
+   if (out == "0") {
+    out = String(num);
+    return out;
+   }
+   else {
+    return out;
+   }
+   
+   }
